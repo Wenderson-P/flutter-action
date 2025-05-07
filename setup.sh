@@ -107,6 +107,21 @@ while getopts 'tc:k:d:l:pa:n:f:g:' flag; do
 	esac
 done
 
+
+[ -z "$ARCH" ] && ARCH="$ARCH_NAME"
+
+if [ -n "$VERSION_FILE" ]; then
+	if [ -n "$VERSION" ]; then
+		echo "Cannot specify both a version and a version file"
+		exit 1
+	fi
+
+	VERSION="$(yq eval '.environment.flutter' "$VERSION_FILE")"
+fi
+
+ARR_CHANNEL=("${@:$OPTIND:1}")
+CHANNEL="${ARR_CHANNEL[0]:-}"
+
 [ -z "$CHANNEL" ] && CHANNEL=stable
 [ -z "$VERSION" ] && VERSION=any
 [ -z "$ARCH" ] && ARCH=x64
