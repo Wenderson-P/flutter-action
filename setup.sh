@@ -107,27 +107,6 @@ while getopts 'tc:k:d:l:pa:n:f:g:' flag; do
 	esac
 done
 
-echo "⚙️ Configuration:"
-echo "  - Channel: $CHANNEL"
-echo "  - Version: $VERSION"
-echo "  - Architecture: $ARCH"
-echo "  - Git Source: $GIT_SOURCE"
-echo "  - Cache Path: $CACHE_PATH"
-
-[ -z "$ARCH" ] && ARCH="$ARCH_NAME"
-
-if [ -n "$VERSION_FILE" ]; then
-	if [ -n "$VERSION" ]; then
-		echo "Cannot specify both a version and a version file"
-		exit 1
-	fi
-
-	VERSION="$(yq eval '.environment.flutter' "$VERSION_FILE")"
-fi
-
-ARR_CHANNEL=("${@:$OPTIND:1}")
-CHANNEL="${ARR_CHANNEL[0]:-}"
-
 [ -z "$CHANNEL" ] && CHANNEL=stable
 [ -z "$VERSION" ] && VERSION=any
 [ -z "$ARCH" ] && ARCH=x64
@@ -152,6 +131,15 @@ if [ -z "${PUB_CACHE:-}" ]; then
 		PUB_CACHE="$HOME/.pub-cache"
 	fi
 fi
+
+echo "⚙️ Configuration:"
+echo "  - Channel: $CHANNEL"
+echo "  - Version: $VERSION"
+echo "  - Architecture: $ARCH"
+echo "  - Git Source: $GIT_SOURCE"
+echo "  - Cache Path: $CACHE_PATH"
+echo "  - Pub Cache Path: $PUB_CACHE_PATH"
+echo "  - Pub Cache: $PUB_CACHE"
 
 if [ "$TEST_MODE" = true ]; then
 	RELEASE_MANIFEST=$(cat "$(dirname -- "${BASH_SOURCE[0]}")/test/$MANIFEST_JSON_PATH")
