@@ -1,20 +1,25 @@
 #!/bin/bash
 set -eu
 
+echo "🔍 Starting Flutter setup script..."
+
 check_command() {
 	command -v "$1" >/dev/null 2>&1
 }
 
 if ! check_command jq; then
-	echo "jq not found. Install it from https://stedolan.github.io/jq"
+	echo "❌ jq not found. Install it from https://stedolan.github.io/jq"
 	exit 1
 fi
 
 OS_NAME=$(echo "$RUNNER_OS" | awk '{print tolower($0)}')
 ARCH_NAME=$(echo "$RUNNER_ARCH" | awk '{print tolower($0)}')
+echo "📦 OS: $OS_NAME, Architecture: $ARCH_NAME"
+
 MANIFEST_BASE_URL="https://storage.googleapis.com/flutter_infra_release/releases"
 MANIFEST_JSON_PATH="releases_$OS_NAME.json"
 MANIFEST_URL="$MANIFEST_BASE_URL/$MANIFEST_JSON_PATH"
+echo "🔗 Manifest URL: $MANIFEST_URL"
 
 filter_by_channel() {
 	jq --arg channel "$1" '[.releases[] | select($channel == "any" or .channel == $channel)]'
@@ -93,7 +98,7 @@ while getopts 'tc:k:d:l:pa:n:f:g:' flag; do
 	f)
 		VERSION_FILE="$OPTARG"
 		if [ -n "$VERSION_FILE" ] && ! check_command yq; then
-			echo "yq not found. Install it from https://mikefarah.gitbook.io/yq"
+			echo "❌ yq not found. Install it from https://mikefarah.gitbook.io/yq"
 			exit 1
 		fi
 		;;
@@ -101,6 +106,13 @@ while getopts 'tc:k:d:l:pa:n:f:g:' flag; do
 	?) exit 2 ;;
 	esac
 done
+
+echo "⚙️ Configuration:"
+echo "  - Channel: $CHANNEL"
+echo "  - Version: $VERSION"
+echo "  - Architecture: $ARCH"
+echo "  - Git Source: $GIT_SOURCE"
+echo "  - Cache Path: $CACHE_PATH"
 
 [ -z "$ARCH" ] && ARCH="$ARCH_NAME"
 
@@ -215,18 +227,27 @@ if [ "$PRINT_ONLY" = true ]; then
 fi
 
 if [ ! -x "$CACHE_PATH/bin/flutter" ]; then
+	echo "📥 Flutter not found in cache, installing..."
 	if [ "$CHANNEL" = "master" ] || [ "$CHANNEL" = "main" ]; then
+		echo "🔄 Cloning Flutter from git source: $GIT_SOURCE"
 		git clone --no-single-branch "$GIT_SOURCE" "$CACHE_PATH"
 		if [ "$VERSION" != "any" ]; then
+			echo "🔍 Checking out version: $VERSION"
 			git config --global --add safe.directory "$CACHE_PATH"
 			(cd "$CACHE_PATH" && git checkout "$VERSION")
 		fi
 	else
+		echo "📦 Downloading Flutter archive"
 		archive_url=$(echo "$VERSION_MANIFEST" | jq -r '.archive')
+		echo "🔗 Archive URL: $archive_url"
 		download_archive "$archive_url" "$CACHE_PATH"
 	fi
+	echo "✅ Flutter installation completed"
+else
+	echo "✅ Flutter found in cache at: $CACHE_PATH"
 fi
 
+echo "🔧 Setting up environment variables..."
 {
 	echo "FLUTTER_ROOT=$CACHE_PATH"
 	echo "PUB_CACHE=$PUB_CACHE"
@@ -237,3 +258,5 @@ fi
 	echo "$CACHE_PATH/bin/cache/dart-sdk/bin"
 	echo "$PUB_CACHE/bin"
 } >>"${GITHUB_PATH:-/dev/null}"
+
+echo "✨ Flutter setup completed successfully"
