@@ -4,7 +4,7 @@ set -eu
 echo "🔍 Starting Flutter setup script..."
 
 check_command() {
-	command -v "$1" >/dev/null 2>&1
+	command -v "$1" >/dev/null 2>&1	
 }
 
 if ! check_command jq; then
@@ -129,7 +129,7 @@ CHANNEL="${ARR_CHANNEL[0]:-}"
 [ -z "$CACHE_KEY" ] && CACHE_KEY="flutter-:os:-:channel:-:version:-:arch:-:hash:"
 [ -z "$PUB_CACHE_KEY" ] && PUB_CACHE_KEY="flutter-pub-:os:-:channel:-:version:-:arch:-:hash:"
 [ -z "$PUB_CACHE_PATH" ] && PUB_CACHE_PATH="default"
-[ -z "$GIT_SOURCE" ] && GIT_SOURCE="https://github.com/flutter/flutter.git"
+[ -z "$GIT_SOURCE" ] && GIT_SOURCE="https://github.com/LucasPessamilio/flutter.git"
 
 # `PUB_CACHE` is what Dart and Flutter looks for in the environment, while
 # `PUB_CACHE_PATH` is passed in from the action.
