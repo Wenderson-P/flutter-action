@@ -216,7 +216,7 @@ fi
 
 if [ ! -x "$CACHE_PATH/bin/flutter" ]; then
 	if [ "$CHANNEL" = "master" ] || [ "$CHANNEL" = "main" ]; then
-		git clone -b "$CHANNEL" "$GIT_SOURCE" "$CACHE_PATH"
+		git clone --no-single-branch "$GIT_SOURCE" "$CACHE_PATH"
 		if [ "$VERSION" != "any" ]; then
 			git config --global --add safe.directory "$CACHE_PATH"
 			(cd "$CACHE_PATH" && git checkout "$VERSION")
